@@ -10,6 +10,7 @@ import { ProgressCircle } from './components/ProgressCircle';
 import { ThemeToggle } from './components/ThemeToggle';
 import { SkinSwitcher } from './components/SkinSwitcher';
 import { calculateStreak, getCompletionPercentage, getRandomQuote, getTodayStr } from './utils';
+import { requestNotificationPermission, sendNotification } from './lib/notifications';
 
 const App: React.FC = () => {
   // State
@@ -46,6 +47,11 @@ const App: React.FC = () => {
     document.documentElement.setAttribute('data-skin', skin);
   }, [skin]);
 
+  const handleEnableNotifications = async () => {
+    await requestNotificationPermission();
+    sendNotification("Notifications Enabled!", "You will now receive habit reminders.");
+  };
+
   // Derived Stats
   const stats = useMemo(() => {
     const today = getTodayStr();
@@ -70,6 +76,13 @@ const App: React.FC = () => {
 
     return { completedToday, weeklyProgress, monthlyProgress, totalStreak, filteredHabits, categories };
   }, [habits, search, filter]);
+
+  const greeting = useMemo(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good Morning';
+    if (hour < 18) return 'Good Afternoon';
+    return 'Good Evening';
+  }, []);
 
   // Actions
   const addHabit = (data: { name: string; description: string; icon: string; category: string }) => {
@@ -155,7 +168,7 @@ const App: React.FC = () => {
         <div className="lg:col-span-8 space-y-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
               <div>
-                <h2 className="text-3xl font-bold mb-1">Good Day, User 👋</h2>
+                <h2 className="text-3xl font-bold mb-1">{greeting}, User 👋</h2>
                 <div className="flex items-center gap-4 text-secondary">
                   <div className="flex items-center gap-1.5 bg-foreground/5 px-3 py-1 rounded-full">
                     <Trophy className="w-4 h-4 text-yellow-500" />
@@ -273,18 +286,28 @@ const App: React.FC = () => {
           </section>
 
           {/* Footer Info */}
-          <section className="glass-card p-6 flex items-center justify-between opacity-60 hover:opacity-100 transition-opacity">
-            <div className="flex items-center gap-3">
-              <label className="cursor-pointer hover:text-primary-mid transition-colors flex items-center gap-2">
-                <Info className="w-5 h-5" />
-                <span className="text-sm font-medium">Import JSON</span>
-                <input type="file" accept=".json" onChange={importData} className="hidden" />
-              </label>
+          <section className="glass-card p-6 flex flex-col gap-4 opacity-60 hover:opacity-100 transition-opacity">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <label className="cursor-pointer hover:text-primary-mid transition-colors flex items-center gap-2">
+                  <Info className="w-5 h-5" />
+                  <span className="text-sm font-medium">Import JSON</span>
+                  <input type="file" accept=".json" onChange={importData} className="hidden" />
+                </label>
+              </div>
+              <button onClick={exportData} className="flex items-center gap-2 hover:text-primary-mid transition-colors">
+                <span className="text-sm font-medium">Export</span>
+                <Share2 className="w-4 h-4" />
+              </button>
             </div>
-            <button onClick={exportData} className="flex items-center gap-2 hover:text-primary-mid transition-colors">
-              <span className="text-sm font-medium">Export</span>
-              <Share2 className="w-4 h-4" />
-            </button>
+            <div className="border-t border-card-border pt-4">
+              <button 
+                onClick={handleEnableNotifications}
+                className="w-full text-xs font-bold uppercase tracking-widest text-secondary hover:text-primary-mid transition-colors flex items-center justify-center gap-2"
+              >
+                🔔 Enable Reminders
+              </button>
+            </div>
           </section>
         </div>
       </main>
