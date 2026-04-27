@@ -7,6 +7,8 @@ import { HabitCard } from './components/HabitCard';
 import { HabitForm } from './components/HabitForm';
 import { CalendarHeatmap } from './components/CalendarHeatmap';
 import { ProgressCircle } from './components/ProgressCircle';
+import { TrendChart } from './components/TrendChart';
+import { Achievements } from './components/Achievements';
 import { ThemeToggle } from './components/ThemeToggle';
 import { SkinSwitcher } from './components/SkinSwitcher';
 import { calculateStreak, getCompletionPercentage, getRandomQuote, getTodayStr } from './utils';
@@ -74,7 +76,16 @@ const App: React.FC = () => {
 
     const categories = ['All', ...Array.from(new Set(habits.map(h => h.category)))];
 
-    return { completedToday, weeklyProgress, monthlyProgress, totalStreak, filteredHabits, categories };
+    // Achievements calculation
+    const achievementList = [
+      { id: '1', name: 'First Step', description: 'Add your first habit', icon: '🎯', isUnlocked: habits.length > 0 },
+      { id: '2', name: 'Consistent', description: 'Reach a 3-day streak', icon: '🔥', isUnlocked: habits.some(h => calculateStreak(h.completions) >= 3) },
+      { id: '3', name: 'Habit Master', description: 'Reach a 7-day streak', icon: '👑', isUnlocked: habits.some(h => calculateStreak(h.completions) >= 7) },
+      { id: '4', name: 'Productive', description: 'Complete 3 habits today', icon: '⚡', isUnlocked: completedToday >= 3 },
+      { id: '5', name: 'Elite', description: 'Complete 5 habits today', icon: '💎', isUnlocked: completedToday >= 5 },
+    ];
+
+    return { completedToday, weeklyProgress, monthlyProgress, totalStreak, filteredHabits, categories, achievementList };
   }, [habits, search, filter]);
 
   const greeting = useMemo(() => {
@@ -145,6 +156,14 @@ const App: React.FC = () => {
       }
     };
     reader.readAsText(file);
+  };
+
+  const clearAllData = () => {
+    if (confirm('Are you sure you want to clear ALL habits and progress? This cannot be undone.')) {
+      setHabits([]);
+      localStorage.clear();
+      alert('All data cleared.');
+    }
   };
 
   return (
@@ -233,13 +252,14 @@ const App: React.FC = () => {
               <HabitForm onAdd={addHabit} />
             </div>
 
-          {/* Activity Heatmap */}
-          <section>
+          {/* Activity Heatmap & Trends */}
+          <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <CalendarHeatmap habits={habits} />
+            <TrendChart habits={habits} />
           </section>
         </div>
 
-        {/* Right Column: Progress & Quote */}
+        {/* Right Column: Progress & Achievements */}
         <div className="lg:col-span-4 space-y-8">
           {/* Progress Section */}
           <section className="glass-card p-8 flex flex-col items-center">
@@ -274,6 +294,9 @@ const App: React.FC = () => {
             </div>
           </section>
 
+          {/* Achievements */}
+          <Achievements achievements={stats.achievementList} />
+
           {/* Quote Section */}
           <section className="glass-card p-8 relative overflow-hidden group">
             <div className="relative z-10">
@@ -300,12 +323,18 @@ const App: React.FC = () => {
                 <Share2 className="w-4 h-4" />
               </button>
             </div>
-            <div className="border-t border-card-border pt-4">
+            <div className="border-t border-card-border pt-4 flex flex-col gap-3">
               <button 
                 onClick={handleEnableNotifications}
                 className="w-full text-xs font-bold uppercase tracking-widest text-secondary hover:text-primary-mid transition-colors flex items-center justify-center gap-2"
               >
                 🔔 Enable Reminders
+              </button>
+              <button 
+                onClick={clearAllData}
+                className="w-full text-[10px] font-bold uppercase tracking-widest text-red-500/50 hover:text-red-500 transition-colors"
+              >
+                ⚠️ Reset All Data
               </button>
             </div>
           </section>
