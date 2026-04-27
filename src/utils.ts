@@ -1,4 +1,4 @@
-import { format, subDays, isSameDay, parseISO, differenceInDays } from 'date-fns';
+import { format, subDays, isSameDay, parseISO } from 'date-fns';
 
 export const getTodayStr = () => format(new Date(), 'yyyy-MM-dd');
 

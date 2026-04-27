@@ -33,10 +33,22 @@ export const Achievements: React.FC<AchievementsProps> = ({ achievements }) => {
             )}
           >
             <div className={cn(
-              "w-12 h-12 rounded-xl flex items-center justify-center text-2xl shadow-sm",
+              "w-12 h-12 rounded-xl flex items-center justify-center text-2xl shadow-sm relative overflow-hidden",
               achievement.isUnlocked ? "bg-primary-gradient text-white" : "bg-foreground/10 text-secondary"
             )}>
-              {achievement.isUnlocked ? achievement.icon : <Lock className="w-5 h-5" />}
+              {achievement.isUnlocked ? (
+                <>
+                  {achievement.icon}
+                  <motion.div 
+                    initial={{ x: '-100%' }}
+                    animate={{ x: '100%' }}
+                    transition={{ repeat: Infinity, duration: 1.5, ease: 'linear' }}
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-12"
+                  />
+                </>
+              ) : (
+                <Lock className="w-5 h-5" />
+              )}
             </div>
             <div className="flex-1">
               <h4 className="text-sm font-bold leading-tight">{achievement.name}</h4>
