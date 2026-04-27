@@ -4,6 +4,7 @@ import { Check, Flame, MoreVertical, Trash2 } from 'lucide-react';
 import { Habit } from '../types';
 import { calculateStreak, getTodayStr } from '../utils';
 import { cn } from '../lib/utils';
+import { playPop, playSuccess } from '../lib/sounds';
 import confetti from 'canvas-confetti';
 
 interface HabitCardProps {
@@ -18,7 +19,9 @@ export const HabitCard: React.FC<HabitCardProps> = ({ habit, onToggle, onDelete 
   const streak = calculateStreak(habit.completions);
 
   const handleToggle = () => {
+    playPop();
     if (!isDone) {
+      playSuccess();
       confetti({
         particleCount: 100,
         spread: 70,
@@ -44,7 +47,12 @@ export const HabitCard: React.FC<HabitCardProps> = ({ habit, onToggle, onDelete 
             {habit.icon || '✨'}
           </div>
           <div>
-            <h3 className="font-semibold text-lg leading-tight">{habit.name}</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="font-semibold text-lg leading-tight">{habit.name}</h3>
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-foreground/5 text-secondary uppercase font-bold border border-foreground/5">
+                {habit.category}
+              </span>
+            </div>
             <p className="text-sm text-secondary line-clamp-1">{habit.description || 'Daily habit'}</p>
           </div>
         </div>

@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, X, Sparkles } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { playSuccess } from '../lib/sounds';
 
 interface HabitFormProps {
   onAdd: (habit: { name: string; description: string; icon: string; category: string }) => void;
@@ -26,6 +26,7 @@ export const HabitForm: React.FC<HabitFormProps> = ({ onAdd }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
+    playSuccess();
     onAdd({ name, description, icon, category });
     setName('');
     setDescription('');

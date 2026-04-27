@@ -24,6 +24,8 @@ const App: React.FC = () => {
     return (localStorage.getItem('nexa-skin') as Skin) || 'default';
   });
   const [quote, setQuote] = useState(getRandomQuote());
+  const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState('All');
 
   // Persistence
   useEffect(() => {
@@ -58,17 +60,26 @@ const App: React.FC = () => {
       ? Math.max(...habits.map(h => calculateStreak(h.completions)))
       : 0;
 
-    return { completedToday, weeklyProgress, monthlyProgress, totalStreak };
-  }, [habits]);
+    const filteredHabits = habits.filter(h => {
+      const matchesSearch = h.name.toLowerCase().includes(search.toLowerCase());
+      const matchesFilter = filter === 'All' || h.category === filter;
+      return matchesSearch && matchesFilter;
+    });
+
+    const categories = ['All', ...Array.from(new Set(habits.map(h => h.category)))];
+
+    return { completedToday, weeklyProgress, monthlyProgress, totalStreak, filteredHabits, categories };
+  }, [habits, search, filter]);
 
   // Actions
-  const addHabit = (data: { name: string; description: string; icon: string }) => {
+  const addHabit = (data: { name: string; description: string; icon: string; category: string }) => {
     const newHabit: Habit = {
       id: crypto.randomUUID(),
       ...data,
       color: 'indigo',
       createdAt: new Date().toISOString(),
       completions: [],
+      isArchived: false,
     };
     setHabits([newHabit, ...habits]);
   };
@@ -94,6 +105,35 @@ const App: React.FC = () => {
 
   const toggleTheme = () => setTheme(prev => prev === 'dark' ? 'light' : 'dark');
 
+  const exportData = () => {
+    const data = JSON.stringify(habits, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `nexa-habits-${getTodayStr()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const importData = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const imported = JSON.parse(event.target?.result as string);
+        if (Array.isArray(imported)) {
+          setHabits(imported);
+          alert('Data imported successfully!');
+        }
+      } catch (err) {
+        alert('Invalid data format.');
+      }
+    };
+    reader.readAsText(file);
+  };
+
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 md:py-12">
       {/* Navbar */}
@@ -113,39 +153,72 @@ const App: React.FC = () => {
       <main className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left Column: Greeting & Habits */}
         <div className="lg:col-span-8 space-y-8">
-          <section>
-            <motion.div 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-8"
-            >
-              <h2 className="text-3xl font-bold mb-2">Good Day, User 👋</h2>
-              <div className="flex items-center gap-4 text-secondary">
-                <div className="flex items-center gap-1.5 bg-foreground/5 px-3 py-1 rounded-full">
-                  <Trophy className="w-4 h-4 text-yellow-500" />
-                  <span className="text-sm font-medium">{stats.totalStreak} Day Streak</span>
-                </div>
-                <div className="flex items-center gap-1.5 bg-foreground/5 px-3 py-1 rounded-full">
-                  <Calendar className="w-4 h-4 text-primary-mid" />
-                  <span className="text-sm font-medium">{stats.completedToday} / {habits.length} Done Today</span>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+              <div>
+                <h2 className="text-3xl font-bold mb-1">Good Day, User 👋</h2>
+                <div className="flex items-center gap-4 text-secondary">
+                  <div className="flex items-center gap-1.5 bg-foreground/5 px-3 py-1 rounded-full">
+                    <Trophy className="w-4 h-4 text-yellow-500" />
+                    <span className="text-sm font-medium">{stats.totalStreak} Day Streak</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 bg-foreground/5 px-3 py-1 rounded-full">
+                    <Calendar className="w-4 h-4 text-primary-mid" />
+                    <span className="text-sm font-medium">{stats.completedToday} / {habits.length} Done Today</span>
+                  </div>
                 </div>
               </div>
-            </motion.div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  placeholder="Search habits..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-start/50 transition-all w-full md:w-auto"
+                />
+                <select
+                  value={filter}
+                  onChange={(e) => setFilter(e.target.value)}
+                  className="bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-2 text-sm focus:outline-none transition-all appearance-none cursor-pointer"
+                >
+                  {stats.categories.map(cat => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <AnimatePresence mode="popLayout">
-                {habits.map((habit) => (
-                  <HabitCard
-                    key={habit.id}
-                    habit={habit}
-                    onToggle={toggleHabit}
-                    onDelete={deleteHabit}
-                  />
-                ))}
+                {habits.length === 0 ? (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="md:col-span-2 glass-card p-12 flex flex-col items-center text-center space-y-4"
+                  >
+                    <div className="w-20 h-20 bg-primary-gradient rounded-3xl flex items-center justify-center shadow-2xl shadow-primary-start/40">
+                      <Sparkles className="w-10 h-10 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-2xl font-bold">Your Journey Starts Here</h3>
+                      <p className="text-secondary max-w-xs mx-auto">
+                        Add your first habit to begin building a better version of yourself. Consistency is key!
+                      </p>
+                    </div>
+                  </motion.div>
+                ) : (
+                  stats.filteredHabits.map((habit) => (
+                    <HabitCard
+                      key={habit.id}
+                      habit={habit}
+                      onToggle={toggleHabit}
+                      onDelete={deleteHabit}
+                    />
+                  ))
+                )}
               </AnimatePresence>
               <HabitForm onAdd={addHabit} />
             </div>
-          </section>
 
           {/* Activity Heatmap */}
           <section>
@@ -202,10 +275,14 @@ const App: React.FC = () => {
           {/* Footer Info */}
           <section className="glass-card p-6 flex items-center justify-between opacity-60 hover:opacity-100 transition-opacity">
             <div className="flex items-center gap-3">
-              <Info className="w-5 h-5 text-secondary" />
-              <span className="text-sm font-medium">Offline Storage Enabled</span>
+              <label className="cursor-pointer hover:text-primary-mid transition-colors flex items-center gap-2">
+                <Info className="w-5 h-5" />
+                <span className="text-sm font-medium">Import JSON</span>
+                <input type="file" accept=".json" onChange={importData} className="hidden" />
+              </label>
             </div>
-            <button className="p-2 hover:bg-foreground/5 rounded-lg transition-colors">
+            <button onClick={exportData} className="flex items-center gap-2 hover:text-primary-mid transition-colors">
+              <span className="text-sm font-medium">Export</span>
               <Share2 className="w-4 h-4" />
             </button>
           </section>
