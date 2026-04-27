@@ -32,6 +32,7 @@ const App: React.FC = () => {
   const [filter, setFilter] = useState('All');
   const [activeTab, setActiveTab] = useState<'habits' | 'stats'>('habits');
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [zenMode, setZenMode] = useState(false);
 
   // Persistence
   useEffect(() => {
@@ -202,6 +203,16 @@ const App: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-4">
+            <button 
+              onClick={() => setZenMode(!zenMode)}
+              className={cn(
+                "hidden md:flex items-center gap-2 px-4 py-2 rounded-xl transition-all font-bold text-xs uppercase tracking-widest",
+                zenMode ? "bg-primary-gradient text-white shadow-lg" : "glass-card hover:bg-foreground/5 text-secondary"
+              )}
+            >
+              <Sparkles className="w-4 h-4" />
+              {zenMode ? 'Zen: ON' : 'Zen Mode'}
+            </button>
             <div className="flex items-center gap-1.5 glass-card px-4 py-2 mr-2">
               <a href="https://github.com/farmanullah1" target="_blank" rel="noopener noreferrer" className="p-2 hover:bg-foreground/10 rounded-xl transition-all hover:text-primary-mid group">
                 <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -224,76 +235,99 @@ const App: React.FC = () => {
           </div>
         </header>
 
-        <main className="space-y-10">
+        <main className={cn("space-y-10 transition-all duration-700", zenMode && "max-w-4xl mx-auto")}>
           {/* Main Content Tabs */}
-          <div className="flex justify-center">
-            <div className="glass-card p-1 flex gap-2">
-              <button 
-                onClick={() => setActiveTab('habits')}
-                className={cn(
-                  "px-8 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2",
-                  activeTab === 'habits' ? "bg-primary-gradient text-white shadow-lg" : "hover:bg-foreground/5 text-secondary"
-                )}
-              >
-                <List className="w-4 h-4" />
-                My Habits
-              </button>
-              <button 
-                onClick={() => setActiveTab('stats')}
-                className={cn(
-                  "px-8 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2",
-                  activeTab === 'stats' ? "bg-primary-gradient text-white shadow-lg" : "hover:bg-foreground/5 text-secondary"
-                )}
-              >
-                <BarChart3 className="w-4 h-4" />
-                Performance
-              </button>
+          {!zenMode && (
+            <div className="flex justify-center">
+              <div className="glass-card p-1.5 flex gap-2 shadow-premium">
+                <button 
+                  onClick={() => setActiveTab('habits')}
+                  className={cn(
+                    "relative px-8 py-2.5 rounded-xl text-sm font-black uppercase tracking-widest transition-all flex items-center gap-2 z-10",
+                    activeTab === 'habits' ? "text-white" : "text-secondary hover:text-foreground"
+                  )}
+                >
+                  {activeTab === 'habits' && (
+                    <motion.div 
+                      layoutId="tab-bg"
+                      className="absolute inset-0 bg-primary-gradient rounded-xl -z-10 shadow-lg shadow-primary-start/40"
+                    />
+                  )}
+                  <List className="w-4 h-4" />
+                  My Habits
+                </button>
+                <button 
+                  onClick={() => setActiveTab('stats')}
+                  className={cn(
+                    "relative px-8 py-2.5 rounded-xl text-sm font-black uppercase tracking-widest transition-all flex items-center gap-2 z-10",
+                    activeTab === 'stats' ? "text-white" : "text-secondary hover:text-foreground"
+                  )}
+                >
+                  {activeTab === 'stats' && (
+                    <motion.div 
+                      layoutId="tab-bg"
+                      className="absolute inset-0 bg-primary-gradient rounded-xl -z-10 shadow-lg shadow-primary-start/40"
+                    />
+                  )}
+                  <BarChart3 className="w-4 h-4" />
+                  Performance
+                </button>
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
             {activeTab === 'habits' ? (
               <>
                 {/* Left Column: Greeting & Habits */}
-                <div className="lg:col-span-8 space-y-8">
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-                    <div>
-                      <h2 className="text-4xl font-black mb-2 tracking-tight">
-                        {greeting}, <span className="text-gradient">Achiever</span> 👋
-                      </h2>
-                      <div className="flex items-center gap-4 text-secondary">
-                        <div className="flex items-center gap-1.5 bg-foreground/5 px-3 py-1 rounded-full border border-foreground/5">
-                          <Trophy className="w-4 h-4 text-yellow-500" />
-                          <span className="text-sm font-black italic">{stats.totalStreak} Day Streak</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 bg-foreground/5 px-3 py-1 rounded-full border border-foreground/5">
-                          <Calendar className="w-4 h-4 text-primary-mid" />
-                          <span className="text-sm font-black italic">{stats.completedToday} / {habits.length} Done</span>
+                <div className={cn(zenMode ? "lg:col-span-12" : "lg:col-span-8", "space-y-8")}>
+                  {!zenMode && (
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                      <div>
+                        <h2 className="text-4xl font-black mb-2 tracking-tight">
+                          {greeting}, <span className="text-gradient">Achiever</span> 👋
+                        </h2>
+                        <div className="flex items-center gap-4 text-secondary">
+                          <div className="flex items-center gap-1.5 bg-foreground/5 px-3 py-1 rounded-full border border-foreground/5">
+                            <Trophy className="w-4 h-4 text-yellow-500" />
+                            <span className="text-sm font-black italic">{stats.totalStreak} Day Streak</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 bg-foreground/5 px-3 py-1 rounded-full border border-foreground/5">
+                            <Calendar className="w-4 h-4 text-primary-mid" />
+                            <span className="text-sm font-black italic">{stats.completedToday} / {habits.length} Done</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    <div className="flex items-center gap-2">
-                      <div className="relative group">
-                        <input
-                          type="text"
-                          placeholder="Find your habit..."
-                          value={search}
-                          onChange={(e) => setSearch(e.target.value)}
-                          className="bg-card backdrop-blur-xl border border-card-border rounded-2xl px-5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-start/50 transition-all w-full md:w-64 shadow-inner"
-                        />
+                      <div className="flex items-center gap-2">
+                        <div className="relative group">
+                          <input
+                            type="text"
+                            placeholder="Find your habit..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            className="bg-card backdrop-blur-xl border border-card-border rounded-2xl px-5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-start/50 transition-all w-full md:w-64 shadow-inner"
+                          />
+                        </div>
+                        <select
+                          value={filter}
+                          onChange={(e) => setFilter(e.target.value)}
+                          className="bg-card backdrop-blur-xl border border-card-border rounded-2xl px-4 py-3 text-sm focus:outline-none transition-all appearance-none cursor-pointer shadow-inner pr-10"
+                        >
+                          {stats.categories.map(cat => (
+                            <option key={cat} value={cat}>{cat}</option>
+                          ))}
+                        </select>
                       </div>
-                      <select
-                        value={filter}
-                        onChange={(e) => setFilter(e.target.value)}
-                        className="bg-card backdrop-blur-xl border border-card-border rounded-2xl px-4 py-3 text-sm focus:outline-none transition-all appearance-none cursor-pointer shadow-inner pr-10"
-                      >
-                        {stats.categories.map(cat => (
-                          <option key={cat} value={cat}>{cat}</option>
-                        ))}
-                      </select>
                     </div>
-                  </div>
+                  )}
+
+                  {zenMode && (
+                    <div className="text-center space-y-2 mb-12">
+                      <h2 className="text-5xl font-black tracking-tighter">Quiet Progress</h2>
+                      <p className="text-secondary font-medium uppercase tracking-[0.4em] text-[10px]">Your daily focus, simplified.</p>
+                    </div>
+                  )}
 
                   <motion.div 
                     layout
