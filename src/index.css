@@ -1,6 +1,5 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@config "../tailwind.config.js";
 
 @layer base {
   :root {
@@ -61,6 +60,23 @@
     --accent-glow: rgba(55, 65, 81, 0.2);
   }
 
+  /* Animated Blobs */
+  .blob {
+    position: absolute;
+    filter: blur(100px);
+    opacity: 0.2;
+    border-radius: 9999px;
+    z-index: -1;
+    animation: blob 7s infinite;
+  }
+
+  @keyframes blob {
+    0% { transform: translate(0px, 0px) scale(1); }
+    33% { transform: translate(30px, -50px) scale(1.1); }
+    66% { transform: translate(-20px, 20px) scale(0.9); }
+    100% { transform: translate(0px, 0px) scale(1); }
+  }
+
   body {
     @apply bg-background text-foreground transition-colors duration-300 antialiased min-h-screen;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -69,7 +85,16 @@
 
 @layer components {
   .glass-card {
-    @apply bg-card backdrop-blur-glass border border-card-border rounded-ios shadow-glass transition-all duration-300;
+    @apply bg-card backdrop-blur-glass border border-card-border rounded-ios shadow-glass transition-all duration-500 relative overflow-hidden;
+  }
+
+  .glass-card::before {
+    content: "";
+    @apply absolute inset-0 bg-white/5 opacity-0 transition-opacity duration-500 pointer-events-none;
+  }
+
+  .glass-card:hover::before {
+    @apply opacity-100;
   }
 
   .btn-primary {

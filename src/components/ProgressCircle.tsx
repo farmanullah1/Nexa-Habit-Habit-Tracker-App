@@ -19,9 +19,12 @@ export const ProgressCircle: React.FC<ProgressCircleProps> = ({
   const offset = circumference - (percentage / 100) * circumference;
 
   return (
-    <div className="flex flex-col items-center gap-3">
-      <div className="relative" style={{ width: size, height: size }}>
-        <svg className="w-full h-full transform -rotate-90">
+    <div className="flex flex-col items-center gap-4">
+      <div className="relative group" style={{ width: size, height: size }}>
+        {/* Outer Glow Ring */}
+        <div className="absolute inset-0 rounded-full bg-primary-start/5 scale-110 group-hover:bg-primary-start/10 transition-all duration-700" />
+        
+        <svg className="w-full h-full transform -rotate-90 relative z-10">
           {/* Background Circle */}
           <circle
             cx={size / 2}
@@ -43,7 +46,7 @@ export const ProgressCircle: React.FC<ProgressCircleProps> = ({
             strokeDasharray={circumference}
             initial={{ strokeDashoffset: circumference }}
             animate={{ strokeDashoffset: offset }}
-            transition={{ duration: 1, ease: "easeOut" }}
+            transition={{ duration: 1.5, ease: "circOut" }}
             strokeLinecap="round"
           />
           <defs>
@@ -54,11 +57,11 @@ export const ProgressCircle: React.FC<ProgressCircleProps> = ({
             </linearGradient>
           </defs>
         </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-2xl font-bold">{percentage}%</span>
+        <div className="absolute inset-0 flex flex-col items-center justify-center z-20">
+          <span className="text-3xl font-black tracking-tighter">{percentage}<span className="text-sm opacity-50 ml-0.5">%</span></span>
         </div>
       </div>
-      <span className="text-xs uppercase font-bold text-secondary tracking-widest">{label}</span>
+      <span className="text-[10px] uppercase font-black text-secondary tracking-[0.2em]">{label}</span>
     </div>
   );
 };

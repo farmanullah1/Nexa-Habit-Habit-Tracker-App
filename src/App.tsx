@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Trophy, Calendar, Share2, Info } from 'lucide-react';
+import { Sparkles, Trophy, Calendar, Share2, Info, Github, Globe, ExternalLink, LayoutGrid, List } from 'lucide-react';
 import { differenceInDays, parseISO } from 'date-fns';
 import { Habit, Skin, Theme } from './types';
 import { HabitCard } from './components/HabitCard';
@@ -167,22 +167,47 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8 md:py-12">
-      {/* Navbar */}
-      <header className="flex justify-between items-center mb-10">
-        <div className="flex items-center gap-2">
-          <div className="w-10 h-10 rounded-xl bg-primary-gradient flex items-center justify-center shadow-lg shadow-primary-start/20">
-            <Sparkles className="text-white w-6 h-6" />
-          </div>
-          <h1 className="text-2xl font-black tracking-tight uppercase">Nexa<span className="text-primary-mid">Habit</span></h1>
-        </div>
-        <div className="flex items-center gap-3">
-          <SkinSwitcher currentSkin={skin} setSkin={setSkin} />
-          <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
-        </div>
-      </header>
+    <div className="relative min-h-screen overflow-x-hidden">
+      {/* Premium Background Elements */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="blob w-96 h-96 bg-primary-start top-[-10%] left-[-10%]" />
+        <div className="blob w-80 h-80 bg-primary-mid top-[40%] right-[-10%]" style={{ animationDelay: '2s' }} />
+        <div className="blob w-72 h-72 bg-primary-end bottom-[-10%] left-[20%]" style={{ animationDelay: '4s' }} />
+      </div>
 
-      <main className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div className="max-w-5xl mx-auto px-4 py-8 md:py-12 relative z-10">
+        {/* Navbar */}
+        <header className="flex flex-col md:flex-row justify-between items-center mb-16 gap-6">
+          <div className="flex items-center gap-3 group cursor-default">
+            <motion.div 
+              whileHover={{ rotate: 180 }}
+              transition={{ duration: 0.6 }}
+              className="w-12 h-12 rounded-2xl bg-primary-gradient flex items-center justify-center shadow-xl shadow-primary-start/30"
+            >
+              <Sparkles className="text-white w-7 h-7" />
+            </motion.div>
+            <div>
+              <h1 className="text-3xl font-black tracking-tighter uppercase leading-none">Nexa<span className="text-primary-mid">Habit</span></h1>
+              <span className="text-[10px] text-secondary font-black tracking-[0.2em] uppercase opacity-50">Premium Tracker</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1.5 glass-card px-4 py-2 mr-2">
+              <a href="https://github.com/farmanullah1" target="_blank" rel="noopener noreferrer" className="p-2 hover:bg-foreground/10 rounded-xl transition-all hover:text-primary-mid group">
+                <Github className="w-5 h-5" />
+              </a>
+              <div className="w-[1px] h-4 bg-foreground/10" />
+              <a href="https://portfolio-website-link.com" target="_blank" rel="noopener noreferrer" className="p-2 hover:bg-foreground/10 rounded-xl transition-all hover:text-primary-mid group">
+                <Globe className="w-5 h-5" />
+              </a>
+            </div>
+            <SkinSwitcher currentSkin={skin} setSkin={setSkin} />
+            <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
+          </div>
+        </header>
+
+        <main className="grid grid-cols-1 lg:grid-cols-12 gap-10">
         {/* Left Column: Greeting & Habits */}
         <div className="lg:col-span-8 space-y-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
@@ -220,37 +245,56 @@ const App: React.FC = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <motion.div 
+              layout
+              className="grid grid-cols-1 md:grid-cols-2 gap-6"
+            >
               <AnimatePresence mode="popLayout">
                 {habits.length === 0 ? (
                   <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="md:col-span-2 glass-card p-12 flex flex-col items-center text-center space-y-4"
+                    key="empty-state"
+                    initial={{ opacity: 0, scale: 0.9, y: 40 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    className="md:col-span-2 glass-card p-16 flex flex-col items-center text-center space-y-6 bg-gradient-to-br from-card to-primary-start/5"
                   >
-                    <div className="w-20 h-20 bg-primary-gradient rounded-3xl flex items-center justify-center shadow-2xl shadow-primary-start/40">
-                      <Sparkles className="w-10 h-10 text-white" />
+                    <div className="w-24 h-24 bg-primary-gradient rounded-[2rem] flex items-center justify-center shadow-2xl shadow-primary-start/40 animate-pulse">
+                      <Sparkles className="w-12 h-12 text-white" />
                     </div>
-                    <div>
-                      <h3 className="text-2xl font-bold">Your Journey Starts Here</h3>
-                      <p className="text-secondary max-w-xs mx-auto">
-                        Add your first habit to begin building a better version of yourself. Consistency is key!
+                    <div className="max-w-sm">
+                      <h3 className="text-3xl font-black tracking-tighter mb-2">Elevate Your Life</h3>
+                      <p className="text-secondary font-medium opacity-80 leading-relaxed">
+                        Join thousands of high-performers tracking their daily progress with Nexa. Add your first habit and unlock your potential.
                       </p>
                     </div>
+                    <HabitForm onAdd={addHabit} />
                   </motion.div>
                 ) : (
-                  stats.filteredHabits.map((habit) => (
-                    <HabitCard
-                      key={habit.id}
-                      habit={habit}
-                      onToggle={toggleHabit}
-                      onDelete={deleteHabit}
-                    />
-                  ))
+                  <>
+                    {stats.filteredHabits.map((habit, index) => (
+                      <motion.div
+                        key={habit.id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                      >
+                        <HabitCard
+                          habit={habit}
+                          onToggle={toggleHabit}
+                          onDelete={deleteHabit}
+                        />
+                      </motion.div>
+                    ))}
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: stats.filteredHabits.length * 0.05 }}
+                    >
+                      <HabitForm onAdd={addHabit} />
+                    </motion.div>
+                  </>
                 )}
               </AnimatePresence>
-              <HabitForm onAdd={addHabit} />
-            </div>
+            </motion.div>
 
           {/* Activity Heatmap & Trends */}
           <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -345,7 +389,8 @@ const App: React.FC = () => {
         <p>© 2026 Nexa Habit. Built with ❤️ for productivity.</p>
       </footer>
     </div>
-  );
+  </div>
+);
 };
 
 export default App;
