@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, X, Sparkles } from 'lucide-react';
 import { cn } from '../lib/utils';
