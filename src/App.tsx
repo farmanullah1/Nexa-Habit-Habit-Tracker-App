@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Trophy, Calendar, Share2, Info, Github, Globe, ExternalLink, LayoutGrid, List } from 'lucide-react';
+import { Sparkles, Trophy, Calendar, Share2, Info, Globe, ExternalLink, LayoutGrid, List, BarChart3, Settings, Volume2, VolumeX } from 'lucide-react';
 import { differenceInDays, parseISO } from 'date-fns';
 import { Habit, Skin, Theme } from './types';
 import { HabitCard } from './components/HabitCard';
@@ -13,6 +13,7 @@ import { ThemeToggle } from './components/ThemeToggle';
 import { SkinSwitcher } from './components/SkinSwitcher';
 import { calculateStreak, getCompletionPercentage, getRandomQuote, getTodayStr } from './utils';
 import { requestNotificationPermission, sendNotification } from './lib/notifications';
+import { cn } from './lib/utils';
 
 const App: React.FC = () => {
   // State
@@ -29,6 +30,8 @@ const App: React.FC = () => {
   const [quote, setQuote] = useState(getRandomQuote());
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('All');
+  const [activeTab, setActiveTab] = useState<'habits' | 'stats'>('habits');
+  const [soundEnabled, setSoundEnabled] = useState(true);
 
   // Persistence
   useEffect(() => {
@@ -48,6 +51,12 @@ const App: React.FC = () => {
     localStorage.setItem('nexa-skin', skin);
     document.documentElement.setAttribute('data-skin', skin);
   }, [skin]);
+
+  const handleShare = () => {
+    const summary = `🚀 Nexa Habit Progress Update!\n\n🔥 Current Streak: ${stats.totalStreak} Days\n✅ Habits Completed Today: ${stats.completedToday}/${habits.length}\n🏆 Total Achievements: ${stats.achievementList.filter(a => a.isUnlocked).length}\n\nJoin me on Nexa Habit!`;
+    navigator.clipboard.writeText(summary);
+    sendNotification('Progress Copied!', 'Your achievement summary is ready to share.');
+  };
 
   const handleEnableNotifications = async () => {
     await requestNotificationPermission();
@@ -195,194 +204,220 @@ const App: React.FC = () => {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-1.5 glass-card px-4 py-2 mr-2">
               <a href="https://github.com/farmanullah1" target="_blank" rel="noopener noreferrer" className="p-2 hover:bg-foreground/10 rounded-xl transition-all hover:text-primary-mid group">
-                <Github className="w-5 h-5" />
+                <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.43.372.823 1.102.823 2.222 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
+                </svg>
               </a>
               <div className="w-[1px] h-4 bg-foreground/10" />
               <a href="https://portfolio-website-link.com" target="_blank" rel="noopener noreferrer" className="p-2 hover:bg-foreground/10 rounded-xl transition-all hover:text-primary-mid group">
                 <Globe className="w-5 h-5" />
               </a>
             </div>
+            <button 
+              onClick={() => setSoundEnabled(!soundEnabled)}
+              className="p-2 hover:bg-foreground/10 rounded-xl transition-all"
+            >
+              {soundEnabled ? <Volume2 className="w-5 h-5 text-primary-mid" /> : <VolumeX className="w-5 h-5 text-secondary" />}
+            </button>
             <SkinSwitcher currentSkin={skin} setSkin={setSkin} />
             <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
           </div>
         </header>
 
-        <main className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-        {/* Left Column: Greeting & Habits */}
-        <div className="lg:col-span-8 space-y-8">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-              <div>
-                <h2 className="text-3xl font-bold mb-1">{greeting}, User 👋</h2>
-                <div className="flex items-center gap-4 text-secondary">
-                  <div className="flex items-center gap-1.5 bg-foreground/5 px-3 py-1 rounded-full">
-                    <Trophy className="w-4 h-4 text-yellow-500" />
-                    <span className="text-sm font-medium">{stats.totalStreak} Day Streak</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 bg-foreground/5 px-3 py-1 rounded-full">
-                    <Calendar className="w-4 h-4 text-primary-mid" />
-                    <span className="text-sm font-medium">{stats.completedToday} / {habits.length} Done Today</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  placeholder="Search habits..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-start/50 transition-all w-full md:w-auto"
-                />
-                <select
-                  value={filter}
-                  onChange={(e) => setFilter(e.target.value)}
-                  className="bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-2 text-sm focus:outline-none transition-all appearance-none cursor-pointer"
-                >
-                  {stats.categories.map(cat => (
-                    <option key={cat} value={cat}>{cat}</option>
-                  ))}
-                </select>
-              </div>
+        <main className="space-y-10">
+          {/* Main Content Tabs */}
+          <div className="flex justify-center">
+            <div className="glass-card p-1 flex gap-2">
+              <button 
+                onClick={() => setActiveTab('habits')}
+                className={cn(
+                  "px-8 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2",
+                  activeTab === 'habits' ? "bg-primary-gradient text-white shadow-lg" : "hover:bg-foreground/5 text-secondary"
+                )}
+              >
+                <List className="w-4 h-4" />
+                My Habits
+              </button>
+              <button 
+                onClick={() => setActiveTab('stats')}
+                className={cn(
+                  "px-8 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2",
+                  activeTab === 'stats' ? "bg-primary-gradient text-white shadow-lg" : "hover:bg-foreground/5 text-secondary"
+                )}
+              >
+                <BarChart3 className="w-4 h-4" />
+                Performance
+              </button>
             </div>
+          </div>
 
-            <motion.div 
-              layout
-              className="grid grid-cols-1 md:grid-cols-2 gap-6"
-            >
-              <AnimatePresence mode="popLayout">
-                {habits.length === 0 ? (
-                  <motion.div
-                    key="empty-state"
-                    initial={{ opacity: 0, scale: 0.9, y: 40 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    className="md:col-span-2 glass-card p-16 flex flex-col items-center text-center space-y-6 bg-gradient-to-br from-card to-primary-start/5"
-                  >
-                    <div className="w-24 h-24 bg-primary-gradient rounded-[2rem] flex items-center justify-center shadow-2xl shadow-primary-start/40 animate-pulse">
-                      <Sparkles className="w-12 h-12 text-white" />
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+            {activeTab === 'habits' ? (
+              <>
+                {/* Left Column: Greeting & Habits */}
+                <div className="lg:col-span-8 space-y-8">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                    <div>
+                      <h2 className="text-4xl font-black mb-2 tracking-tight">
+                        {greeting}, <span className="text-gradient">Achiever</span> 👋
+                      </h2>
+                      <div className="flex items-center gap-4 text-secondary">
+                        <div className="flex items-center gap-1.5 bg-foreground/5 px-3 py-1 rounded-full border border-foreground/5">
+                          <Trophy className="w-4 h-4 text-yellow-500" />
+                          <span className="text-sm font-black italic">{stats.totalStreak} Day Streak</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 bg-foreground/5 px-3 py-1 rounded-full border border-foreground/5">
+                          <Calendar className="w-4 h-4 text-primary-mid" />
+                          <span className="text-sm font-black italic">{stats.completedToday} / {habits.length} Done</span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="max-w-sm">
-                      <h3 className="text-3xl font-black tracking-tighter mb-2">Elevate Your Life</h3>
-                      <p className="text-secondary font-medium opacity-80 leading-relaxed">
-                        Join thousands of high-performers tracking their daily progress with Nexa. Add your first habit and unlock your potential.
+
+                    <div className="flex items-center gap-2">
+                      <div className="relative group">
+                        <input
+                          type="text"
+                          placeholder="Find your habit..."
+                          value={search}
+                          onChange={(e) => setSearch(e.target.value)}
+                          className="bg-card backdrop-blur-xl border border-card-border rounded-2xl px-5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-start/50 transition-all w-full md:w-64 shadow-inner"
+                        />
+                      </div>
+                      <select
+                        value={filter}
+                        onChange={(e) => setFilter(e.target.value)}
+                        className="bg-card backdrop-blur-xl border border-card-border rounded-2xl px-4 py-3 text-sm focus:outline-none transition-all appearance-none cursor-pointer shadow-inner pr-10"
+                      >
+                        {stats.categories.map(cat => (
+                          <option key={cat} value={cat}>{cat}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <motion.div 
+                    layout
+                    className="grid grid-cols-1 md:grid-cols-2 gap-6"
+                  >
+                    <AnimatePresence mode="popLayout">
+                      {habits.length === 0 ? (
+                        <motion.div
+                          key="empty-state"
+                          initial={{ opacity: 0, scale: 0.9, y: 40 }}
+                          animate={{ opacity: 1, scale: 1, y: 0 }}
+                          className="md:col-span-2 glass-card p-16 flex flex-col items-center text-center space-y-6 bg-gradient-to-br from-card to-primary-start/5 border-dashed border-2 border-primary-start/20"
+                        >
+                          <div className="w-24 h-24 bg-primary-gradient rounded-[2rem] flex items-center justify-center shadow-2xl shadow-primary-start/40 animate-pulse">
+                            <Sparkles className="w-12 h-12 text-white" />
+                          </div>
+                          <div className="max-w-sm">
+                            <h3 className="text-3xl font-black tracking-tighter mb-2">Elevate Your Life</h3>
+                            <p className="text-secondary font-medium opacity-80 leading-relaxed">
+                              Join thousands of high-performers tracking their daily progress with Nexa. Add your first habit and unlock your potential.
+                            </p>
+                          </div>
+                          <HabitForm onAdd={addHabit} />
+                        </motion.div>
+                      ) : (
+                        <>
+                          {stats.filteredHabits.map((habit, index) => (
+                            <motion.div
+                              key={habit.id}
+                              initial={{ opacity: 0, x: -20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: index * 0.05 }}
+                            >
+                              <HabitCard
+                                habit={habit}
+                                onToggle={toggleHabit}
+                                onDelete={deleteHabit}
+                              />
+                            </motion.div>
+                          ))}
+                          <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: stats.filteredHabits.length * 0.05 }}
+                            className="flex items-center justify-center"
+                          >
+                            <HabitForm onAdd={addHabit} />
+                          </motion.div>
+                        </>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
+                </div>
+
+                {/* Right Column: Mini Progress & Achievements */}
+                <div className="lg:col-span-4 space-y-8">
+                  <section className="glass-card p-8 flex flex-col items-center bg-gradient-to-br from-card to-primary-start/5">
+                    <h3 className="font-black text-lg mb-8 self-start uppercase tracking-tighter">Your Focus</h3>
+                    <div className="grid grid-cols-2 gap-8 w-full">
+                      <ProgressCircle percentage={stats.weeklyProgress} label="Weekly" size={120} />
+                      <ProgressCircle percentage={stats.monthlyProgress} label="Monthly" size={120} />
+                    </div>
+                  </section>
+                  <Achievements achievements={stats.achievementList.slice(0, 3)} />
+                  {/* Quote Section */}
+                  <section className="glass-card p-8 relative overflow-hidden group border-primary-start/10">
+                    <div className="relative z-10">
+                      <h3 className="text-[10px] uppercase font-black text-primary-mid tracking-[0.3em] mb-4">Daily Vision</h3>
+                      <p className="text-2xl font-black italic text-foreground/90 leading-tight">
+                        "{quote}"
                       </p>
                     </div>
-                    <HabitForm onAdd={addHabit} />
-                  </motion.div>
-                ) : (
-                  <>
-                    {stats.filteredHabits.map((habit, index) => (
-                      <motion.div
-                        key={habit.id}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.05 }}
+                    <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-primary-start/20 blur-3xl rounded-full" />
+                  </section>
+                </div>
+              </>
+            ) : (
+              <div className="lg:col-span-12 space-y-10">
+                <section className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  <div className="glass-card p-8 bg-gradient-to-br from-card to-primary-start/5">
+                    <h3 className="font-black text-xl mb-10 uppercase tracking-tighter">Weekly Trends</h3>
+                    <TrendChart habits={habits} />
+                  </div>
+                  <div className="md:col-span-2 glass-card p-8">
+                    <h3 className="font-black text-xl mb-10 uppercase tracking-tighter">30-Day Activity Heatmap</h3>
+                    <CalendarHeatmap habits={habits} />
+                  </div>
+                </section>
+
+                <section className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                  <div className="glass-card p-10">
+                    <h3 className="font-black text-2xl mb-8 uppercase tracking-tighter">Badges & Glory</h3>
+                    <Achievements achievements={stats.achievementList} />
+                  </div>
+                  <div className="space-y-8">
+                    <div className="glass-card p-10 flex flex-col items-center">
+                      <h3 className="font-black text-2xl mb-8 self-start uppercase tracking-tighter">Global Mastery</h3>
+                      <div className="grid grid-cols-2 gap-12">
+                        <ProgressCircle percentage={stats.weeklyProgress} label="Weekly" size={160} />
+                        <ProgressCircle percentage={stats.monthlyProgress} label="Monthly" size={160} />
+                      </div>
+                    </div>
+                    
+                    <div className="glass-card p-10 opacity-60 hover:opacity-100 transition-opacity">
+                      <h3 className="font-black text-xl mb-6 uppercase tracking-tighter">Data Vault</h3>
+                      <div className="flex gap-4">
+                        <button onClick={exportData} className="btn-secondary flex-1">Export Vault</button>
+                        <label className="btn-secondary flex-1 cursor-pointer">
+                          Import Vault
+                          <input type="file" accept=".json" onChange={importData} className="hidden" />
+                        </label>
+                      </div>
+                      <button 
+                        onClick={clearAllData}
+                        className="w-full mt-4 py-3 text-[10px] font-black uppercase tracking-widest text-red-500/50 hover:text-red-500 transition-all border border-red-500/10 rounded-xl hover:bg-red-500/5"
                       >
-                        <HabitCard
-                          habit={habit}
-                          onToggle={toggleHabit}
-                          onDelete={deleteHabit}
-                        />
-                      </motion.div>
-                    ))}
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: stats.filteredHabits.length * 0.05 }}
-                    >
-                      <HabitForm onAdd={addHabit} />
-                    </motion.div>
-                  </>
-                )}
-              </AnimatePresence>
-            </motion.div>
-
-          {/* Activity Heatmap & Trends */}
-          <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <CalendarHeatmap habits={habits} />
-            <TrendChart habits={habits} />
-          </section>
-        </div>
-
-        {/* Right Column: Progress & Achievements */}
-        <div className="lg:col-span-4 space-y-8">
-          {/* Progress Section */}
-          <section className="glass-card p-8 flex flex-col items-center">
-            <h3 className="font-bold text-lg mb-8 self-start">Overall Progress</h3>
-            <div className="grid grid-cols-2 gap-8 w-full">
-              <ProgressCircle percentage={stats.weeklyProgress} label="Weekly" />
-              <ProgressCircle percentage={stats.monthlyProgress} label="Monthly" />
-            </div>
-            
-            <div className="mt-10 grid grid-cols-2 gap-4 w-full">
-              <div className="bg-foreground/5 p-4 rounded-2xl">
-                <p className="text-xs text-secondary font-bold uppercase mb-1">Avg. Streak</p>
-                <p className="text-xl font-bold">{habits.length > 0 ? Math.round(habits.reduce((acc, h) => acc + calculateStreak(h.completions), 0) / habits.length) : 0} Days</p>
+                        Nuclear Reset
+                      </button>
+                    </div>
+                  </div>
+                </section>
               </div>
-              <div className="bg-foreground/5 p-4 rounded-2xl">
-                <p className="text-xs text-secondary font-bold uppercase mb-1">Weekly Done</p>
-                <p className="text-xl font-bold">{habits.reduce((acc, h) => acc + h.completions.filter(d => differenceInDays(new Date(), parseISO(d)) <= 7).length, 0)}</p>
-              </div>
-            </div>
-            <div className="mt-8 pt-8 border-t border-card-border w-full">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm text-secondary font-medium">Daily Goal</span>
-                <span className="text-sm font-bold">{Math.round((stats.completedToday / (habits.length || 1)) * 100)}%</span>
-              </div>
-              <div className="h-2 w-full bg-foreground/5 rounded-full overflow-hidden">
-                <motion.div 
-                  initial={{ width: 0 }}
-                  animate={{ width: `${(stats.completedToday / (habits.length || 1)) * 100}%` }}
-                  className="h-full bg-primary-gradient"
-                />
-              </div>
-            </div>
-          </section>
-
-          {/* Achievements */}
-          <Achievements achievements={stats.achievementList} />
-
-          {/* Quote Section */}
-          <section className="glass-card p-8 relative overflow-hidden group">
-            <div className="relative z-10">
-              <h3 className="text-xs uppercase font-bold text-primary-mid tracking-widest mb-4">Daily Motivation</h3>
-              <p className="text-xl font-medium leading-relaxed italic text-foreground/90">
-                "{quote}"
-              </p>
-            </div>
-            <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-primary-start/10 blur-3xl rounded-full" />
-          </section>
-
-          {/* Footer Info */}
-          <section className="glass-card p-6 flex flex-col gap-4 opacity-60 hover:opacity-100 transition-opacity">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <label className="cursor-pointer hover:text-primary-mid transition-colors flex items-center gap-2">
-                  <Info className="w-5 h-5" />
-                  <span className="text-sm font-medium">Import JSON</span>
-                  <input type="file" accept=".json" onChange={importData} className="hidden" />
-                </label>
-              </div>
-              <button onClick={exportData} className="flex items-center gap-2 hover:text-primary-mid transition-colors">
-                <span className="text-sm font-medium">Export</span>
-                <Share2 className="w-4 h-4" />
-              </button>
-            </div>
-            <div className="border-t border-card-border pt-4 flex flex-col gap-3">
-              <button 
-                onClick={handleEnableNotifications}
-                className="w-full text-xs font-bold uppercase tracking-widest text-secondary hover:text-primary-mid transition-colors flex items-center justify-center gap-2"
-              >
-                🔔 Enable Reminders
-              </button>
-              <button 
-                onClick={clearAllData}
-                className="w-full text-[10px] font-bold uppercase tracking-widest text-red-500/50 hover:text-red-500 transition-colors"
-              >
-                ⚠️ Reset All Data
-              </button>
-            </div>
-          </section>
-        </div>
+            )}
+          </div>
       </main>
 
       <footer className="mt-20 text-center text-secondary text-sm">

@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import { Award, Lock, CheckCircle2 } from 'lucide-react';
 import { Achievement } from '../types';
 import { cn } from '../lib/utils';
