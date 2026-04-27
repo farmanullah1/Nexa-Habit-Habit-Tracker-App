@@ -8,13 +8,22 @@ interface HabitFormProps {
   onAdd: (habit: { name: string; description: string; icon: string; category: string }) => void;
 }
 
-const EMOJIS = ['✨', '🏃', '💧', '📚', '🧘', '🍎', '💪', '🧠', '✍️', '🎸', '🌱', '🛌'];
+const EMOJIS = ['✨', '🏃', '💧', '📚', '🧘', '🍎', '💪', '🧠', '✍️', '🎸', '🌱', '🛌', '🚴', '🏊', '🚿', '🥦', '🎹', '🎨', '🧹', '💻', '📞', '🔋', '🏆', '💎'];
 const CATEGORIES = [
   { name: 'General', icon: '🎯' },
   { name: 'Health', icon: '❤️' },
   { name: 'Mind', icon: '🧘' },
   { name: 'Work', icon: '💼' },
   { name: 'Growth', icon: '📈' },
+  { name: 'Creative', icon: '🎨' },
+];
+
+const SUGGESTIONS = [
+  { name: 'Morning Run', category: 'Health', icon: '🏃' },
+  { name: 'Read 30 Mins', category: 'Growth', icon: '📚' },
+  { name: 'Drink Water', category: 'Health', icon: '💧' },
+  { name: 'Meditation', category: 'Mind', icon: '🧘' },
+  { name: 'Deep Work', category: 'Work', icon: '💻' },
 ];
 
 export const HabitForm: React.FC<HabitFormProps> = ({ onAdd }) => {
@@ -70,6 +79,27 @@ export const HabitForm: React.FC<HabitFormProps> = ({ onAdd }) => {
                 <button onClick={() => setIsOpen(false)} className="p-1 hover:bg-foreground/10 rounded-full transition-colors">
                   <X className="w-5 h-5" />
                 </button>
+              </div>
+
+              <div className="mb-6">
+                <label className="text-[10px] uppercase font-black text-secondary tracking-widest mb-3 block">Suggested for you</label>
+                <div className="flex flex-wrap gap-2">
+                  {SUGGESTIONS.map((sug) => (
+                    <button
+                      key={sug.name}
+                      type="button"
+                      onClick={() => {
+                        setName(sug.name);
+                        setCategory(sug.category);
+                        setIcon(sug.icon);
+                      }}
+                      className="px-3 py-1.5 rounded-xl bg-foreground/5 hover:bg-foreground/10 border border-foreground/5 text-xs font-bold transition-all flex items-center gap-2"
+                    >
+                      <span>{sug.icon}</span>
+                      {sug.name}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-4">
